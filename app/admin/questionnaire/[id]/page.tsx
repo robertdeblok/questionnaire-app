@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Plus, Trash2, QrCode, MapPin, Eye, Link2, Copy, ExternalLink, Check, Settings2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, QrCode, MapPin, Eye, Link2, Copy, ExternalLink, Check, Settings2, Pencil } from 'lucide-react'
 import QuestionDialog from '@/components/QuestionDialog'
 import LocationDialog from '@/components/LocationDialog'
 import LogicDialog from '@/components/LogicDialog'
@@ -106,6 +106,18 @@ export default function QuestionnaireEditPage({ params }: { params: { id: string
   const previewQuestionnaire = () => {
     const publicUrl = `${window.location.origin}/questionnaire/q/${params.id}`
     window.open(publicUrl, '_blank')
+  }
+
+  const getOptionText = (question: Question, optionId: string) => {
+    const option = question.options.find((opt: any) => opt.id === optionId)
+    return option?.text || 'Unknown option'
+  }
+
+  const getQuestionText = (questionId: string) => {
+    if (!questionnaire) return 'Unknown question'
+    const q = questionnaire.questions.find(q => q.id === questionId)
+    const idx = questionnaire.questions.findIndex(q => q.id === questionId)
+    return q ? `Q${idx + 1}: ${q.text}` : 'Unknown question'
   }
 
   if (loading || !questionnaire) {
@@ -220,7 +232,29 @@ export default function QuestionnaireEditPage({ params }: { params: { id: string
                         </Button>
                       )}
                       {question.logicRules && question.logicRules.length > 0 && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded text-xs">{question.logicRules.length} logic rule(s) configured</div>
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs font-medium text-gray-700">Logic Rules:</p>
+                          {question.logicRules.map((rule: any) => (
+                            <div key={rule.id} className="flex items-start justify-between p-2 bg-blue-50 rounded text-xs border border-blue-100">
+                              <div className="flex-1">
+                                <p>
+                                  <span className="font-medium">If</span> <span className="text-blue-700">{getOptionText(question, rule.optionId)}</span>
+                                </p>
+                                <p className="mt-0.5">
+                                  <span className="font-medium">Then</span> go to <span className="text-green-700">{getQuestionText(rule.nextQuestionId)}</span>
+                                </p>
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0 ml-2"
+                                onClick={() => { setSelectedQuestion(question); setIsLogicDialogOpen(true); }}
+                              >
+                                <Pencil className="w-3 h-3 text-blue-600" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </CardContent>
