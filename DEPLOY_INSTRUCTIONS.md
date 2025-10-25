@@ -5,8 +5,9 @@
 
 ## Production Server
 **Server:** http://95.98.13.159/questionnaire  
-**SSH:** rjblok@95.98.13.159  
-**App Directory:** ~/questionnaire-app
+**SSH:** rjblok@95.98.13.159 (or use alias: `breur-server`)  
+**App Directory:** ~/questionnaire-app  
+**Authentication:** SSH key (no password required)
 
 ## Workflow for Making Changes
 
@@ -27,14 +28,14 @@ git push origin main
 ### 3. Deploy to Production Server
 SSH into the server and run the deployment script:
 ```bash
-ssh rjblok@95.98.13.159
+ssh breur-server
 cd ~/questionnaire-app
 ./deploy.sh
 ```
 
 Or run it in one command:
 ```bash
-ssh rjblok@95.98.13.159 "cd ~/questionnaire-app && ./deploy.sh"
+ssh breur-server "cd ~/questionnaire-app && ./deploy.sh"
 ```
 
 ## What the Deploy Script Does
@@ -47,7 +48,7 @@ ssh rjblok@95.98.13.159 "cd ~/questionnaire-app && ./deploy.sh"
 ## Manual Deployment Steps
 If you prefer to deploy manually:
 ```bash
-ssh rjblok@95.98.13.159
+ssh breur-server
 cd ~/questionnaire-app
 git pull origin main
 source ~/.nvm/nvm.sh
@@ -60,17 +61,17 @@ pm2 restart questionnaire-app
 
 ### Check server status
 ```bash
-ssh rjblok@95.98.13.159 "source ~/.nvm/nvm.sh && pm2 status questionnaire-app"
+ssh breur-server "source ~/.nvm/nvm.sh && pm2 status questionnaire-app"
 ```
 
 ### View server logs
 ```bash
-ssh rjblok@95.98.13.159 "source ~/.nvm/nvm.sh && pm2 logs questionnaire-app"
+ssh breur-server "source ~/.nvm/nvm.sh && pm2 logs questionnaire-app"
 ```
 
 ### Check git status on server
 ```bash
-ssh rjblok@95.98.13.159 "cd ~/questionnaire-app && git status"
+ssh breur-server "cd ~/questionnaire-app && git status"
 ```
 
 ## Important Notes
