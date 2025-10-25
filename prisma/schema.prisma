@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Questionnaire {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  questions   Question[]
+  sessions    Session[]
+  locations   Location[]
+  settings    QuestionnaireSettings?
+}
+
+model QuestionnaireSettings {
+  id               String        @id @default(uuid())
+  questionnaireId  String        @unique
+  questionnaire    Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  defaultLanguage  String        @default("en")
+  enabledLanguages String        @default("en,nl")
+  
+  // Button labels
+  labelPreviousEn  String        @default("Previous")
+  labelNextEn      String        @default("Next")
+  labelSubmitEn    String        @default("Submit")
+  labelPreviousNl  String        @default("Vorige")
+  labelNextNl      String        @default("Volgende")
+  labelSubmitNl    String        @default("Afronden")
+  
+  // Completion page labels
+  labelThankYouEn  String        @default("Thank You!")
+  labelThankYouNl  String        @default("Bedankt!")
+  labelCompletedEn String        @default("Your responses have been submitted successfully.")
+  labelCompletedNl String        @default("Uw antwoorden zijn succesvol verzonden.")
+  
+  // Question type instructions
+  labelSingleChoiceEn   String   @default("Select one option")
+  labelSingleChoiceNl   String   @default("Selecteer één optie")
+  labelMultipleChoiceEn String   @default("Select all that apply")
+  labelMultipleChoiceNl String   @default("Selecteer alle opties die van toepassing zijn")
+  
+  // Text question labels
+  labelYourAnswerEn     String   @default("Your Answer")
+  labelYourAnswerNl     String   @default("Uw antwoord")
+  labelTextPlaceholderEn String  @default("Type your answer here...")
+  labelTextPlaceholderNl String  @default("Typ hier uw antwoord...")
+  
+  // Other option placeholder
+  labelOtherPlaceholderEn String @default("Please specify...")
+  labelOtherPlaceholderNl String @default("Gelieve te specificeren...")
+  
+  // Progress and status labels
+  labelLoadingEn       String    @default("Loading...")
+  labelLoadingNl       String    @default("Laden...")
+  labelQuestionOfEn    String    @default("Question {current} of {total}")
+  labelQuestionOfNl    String    @default("Vraag {current} van {total}")
+  
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Question {
+  id              String        @id @default(uuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  text            String
+  type            QuestionType
+  order           Int
+  required        Boolean       @default(true)
+  options         Option[]
+  answers         Answer[]
+  logicRules      LogicRule[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([questionnaireId])
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TEXT
+}
+
+model Option {
+  id         String      @id @default(uuid())
+  questionId String
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  order      Int
+  isOther    Boolean     @default(false)
+  logicRules LogicRule[]
+  answers    Answer[]
+
+  @@index([questionId])
+}
+
+model LogicRule {
+  id               String   @id @default(uuid())
+  questionId       String
+  question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId         String?
+  option           Option?  @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  nextQuestionId   String?
+  condition        String   // "equals", "not_equals", "contains"
+  createdAt        DateTime @default(now())
+
+  @@index([questionId])
+  @@index([optionId])
+}
+
+model Location {
+  id              String        @id @default(uuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  name            String
+  qrCode          String        @unique
+  createdAt       DateTime      @default(now())
+  sessions        Session[]
+
+  @@index([questionnaireId])
+}
+
+model Session {
+  id              String        @id @default(uuid())
+  questionnaireId String
+  questionnaire   Questionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  locationId      String?
+  location        Location?     @relation(fields: [locationId], references: [id])
+  startedAt       DateTime      @default(now())
+  completedAt     DateTime?
+  completed       Boolean       @default(false)
+  answers         Answer[]
+  ipAddress       String?
+  userAgent       String?
+
+  @@index([questionnaireId])
+  @@index([locationId])
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionId   String?
+  option     Option?  @relation(fields: [optionId], references: [id])
+  textAnswer String?
+  createdAt  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([questionId])
+}
