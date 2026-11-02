@@ -6,10 +6,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { questionnaireId, locationId, ipAddress, userAgent } = body
 
+    // Onbekende of kapotte QR-code: toch de vragenlijst tonen, zonder locatie
+    let geldigeLocatie: string | null = null
+    if (locationId) {
+      const loc = await prisma.location.findUnique({ where: { id: String(locationId) } })
+      geldigeLocatie = loc ? loc.id : null
+    }
+
     const session = await prisma.session.create({
       data: {
         questionnaireId,
-        locationId,
+        locationId: geldigeLocatie,
         ipAddress,
         userAgent
       }
