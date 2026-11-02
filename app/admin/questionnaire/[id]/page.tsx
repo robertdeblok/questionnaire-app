@@ -104,7 +104,7 @@ export default function QuestionnaireEditPage({ params }: { params: { id: string
   }
 
   const previewQuestionnaire = () => {
-    const publicUrl = `${window.location.origin}/questionnaire/q/${params.id}`
+    const publicUrl = `${window.location.origin}/q/${params.id}`
     window.open(publicUrl, '_blank')
   }
 
