@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,11 @@ interface Questionnaire {
 
 export default function QuestionnairePage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams()
+  const router = useRouter()
+
+  // Onbekende vragenlijst (kapotte/verkeerde QR) → Nederlandse standaardlijst
+  const DEFAULT_ID = 'f5b9b7b7-22c0-4eb2-8404-097270ad401d' // "Voedselbank"
+
   const locationCode = searchParams.get('location')
 
   const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null)
@@ -46,6 +51,11 @@ export default function QuestionnairePage({ params }: { params: { id: string } }
   const fetchQuestionnaire = async () => {
     try {
       const res = await fetch(`/api/questionnaires/${params.id}`)
+      if (res.status === 404 && params.id !== DEFAULT_ID) {
+        const q = locationCode ? `?location=${encodeURIComponent(locationCode)}` : ''
+        router.replace(`/q/${DEFAULT_ID}${q}`)
+        return
+      }
       const data = await res.json()
       setQuestionnaire(data)
     } catch (error) {
