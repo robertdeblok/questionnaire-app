@@ -18,10 +18,10 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get('qa_admin')?.value
   if (token && token === process.env.ADMIN_TOKEN) return NextResponse.next()
   if (pad.startsWith('/api/')) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-  const url = req.nextUrl.clone()
-  url.pathname = '/login'
-  url.search = `?naar=${encodeURIComponent(pad)}`
-  return NextResponse.redirect(url)
+  // achter de proxy: neem het publieke domein mee, niet de interne host
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host
+  const proto = (req.headers.get('x-forwarded-proto') || 'https').split(',')[0].trim()
+  return NextResponse.redirect(`${proto}://${host}/login?naar=${encodeURIComponent(pad)}`)
 }
 
 export const config = { matcher: ['/admin/:path*', '/api/:path*'] }
