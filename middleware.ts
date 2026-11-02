@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 
 // Beheer achter login: /admin/* en alle API's die het publieke formulier niet nodig heeft.
 const PUBLIC_API = [
+  /^POST \/api\/auth\/(login|logout)$/,
   /^GET \/api\/questionnaires\/[^/]+$/,   // formulier laadt de vragenlijst
   /^GET \/api\/settings\/[^/]+$/,        // formulier laadt labels/talen
   /^POST \/api\/sessions$/,              // sessie starten
